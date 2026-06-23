@@ -941,12 +941,6 @@ const initPremiumMotion = () => {
   const hero = document.querySelector(".home-hero, .inner-hero, .simple-hero, .contact-page");
   const heroCopy = document.querySelector(".home-copy, .inner-hero-copy, .simple-hero .wrap, .contact-grid");
   if (hero && heroCopy) {
-    const heroElements = heroCopy.querySelectorAll(".overline, .crumb, h1, p, .button, .text-button, .contact-details, .blog-meta");
-    gsap.timeline({ defaults: { ease: "power2.out" } })
-      .from(".header .logo", { y: -10, opacity: 0, duration: 0.38 })
-      .from(".header nav > *, .header-cta", { y: -8, opacity: 0, duration: 0.3, stagger: 0.035 }, "-=.14")
-      .from(heroElements, { y: 18, opacity: 0, duration: 0.5, stagger: isCompact ? 0.035 : 0.045 }, "-=.08");
-
     const heroImage = hero.querySelector(":scope > img, .inner-hero-img img");
     if (heroImage && !isCompact) {
       gsap.fromTo(heroImage, { scale: 1.025 }, { scale: 1, duration: 1, ease: "power2.out" });

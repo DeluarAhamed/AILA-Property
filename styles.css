@@ -1180,7 +1180,23 @@ footer {
   letter-spacing: 0.04em;
 }
 
-.blog-hero,
+.blog-hero {
+  color: var(--ink);
+  background: var(--cream);
+}
+
+.blog-hero .overline {
+  color: #68736f;
+}
+
+.blog-hero .overline::before {
+  background: var(--forest);
+}
+
+.blog-hero p {
+  color: var(--muted);
+}
+
 .blog-post-page {
   background: var(--white);
 }
