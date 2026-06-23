@@ -279,7 +279,8 @@ footer {
 }
 
 .nav-item:hover .mega,
-.nav-item:focus-within .mega {
+.nav-item:focus-within .mega,
+.has-mega.is-open .mega {
   display: grid;
 }
 

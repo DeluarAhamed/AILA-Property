@@ -9,6 +9,10 @@ on:
 jobs:
   deploy-production:
     runs-on: ubuntu-latest
+    env:
+      VERCEL_ORG_ID: team_Z3yEqzTJUgXQGnRYqNTd4U6m
+      VERCEL_PROJECT_ID: prj_2MGMNAfu7HATZkXSxXkzYbKX2uag
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
 
     steps:
       - name: Checkout repository
@@ -25,17 +29,22 @@ jobs:
       - name: Run tests
         run: npm test
 
+      - name: Skip deploy when Vercel token is missing
+        if: env.VERCEL_TOKEN == ''
+        run: echo "::warning::VERCEL_TOKEN GitHub secret is missing. Tests passed, but automated Vercel deployment was skipped."
+
       - name: Install Vercel CLI
+        if: env.VERCEL_TOKEN != ''
         run: npm install --global vercel@latest
 
       - name: Pull Vercel environment
+        if: env.VERCEL_TOKEN != ''
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Build project artifacts
+        if: env.VERCEL_TOKEN != ''
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy to Vercel production
+        if: env.VERCEL_TOKEN != ''
         run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: team_Z3yEqzTJUgXQGnRYqNTd4U6m
-          VERCEL_PROJECT_ID: prj_2MGMNAfu7HATZkXSxXkzYbKX2uag

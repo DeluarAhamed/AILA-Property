@@ -316,10 +316,43 @@ const overline = (text, dark = false) => `<small class="overline${dark ? " dark"
 const articleUrl = (slug) => `blog-post.html?slug=${slug}`;
 const articleLink = (slug, pageNumber) => `blog-post.html?slug=${slug}${pageNumber && pageNumber > 1 ? `&page=${pageNumber}` : ""}`;
 
-const setSeo = ({ title, description }) => {
+const ensureHeadTag = (selector, buildTag) => {
+  let el = document.head.querySelector(selector);
+  if (!el) {
+    el = buildTag();
+    document.head.appendChild(el);
+  }
+  return el;
+};
+
+const setSeo = ({ title, description, type = "website" }) => {
   if (title) document.title = title;
   const descriptionTag = document.querySelector('meta[name="description"]');
   if (descriptionTag && description) descriptionTag.setAttribute("content", description);
+
+  const canonicalHref = new URL(window.location.pathname + window.location.search, window.location.origin).href;
+  ensureHeadTag('link[rel="canonical"]', () => {
+    const tag = document.createElement("link");
+    tag.rel = "canonical";
+    return tag;
+  }).href = canonicalHref;
+
+  const upsertMeta = (selector, attr, key, value) => {
+    if (!value) return;
+    ensureHeadTag(selector, () => {
+      const tag = document.createElement("meta");
+      tag.setAttribute(attr, key);
+      return tag;
+    }).setAttribute("content", value);
+  };
+
+  upsertMeta('meta[property="og:title"]', "property", "og:title", title);
+  upsertMeta('meta[property="og:description"]', "property", "og:description", description);
+  upsertMeta('meta[property="og:url"]', "property", "og:url", canonicalHref);
+  upsertMeta('meta[property="og:type"]', "property", "og:type", type);
+  upsertMeta('meta[name="twitter:title"]', "name", "twitter:title", title);
+  upsertMeta('meta[name="twitter:description"]', "name", "twitter:description", description);
+  upsertMeta('meta[name="twitter:card"]', "name", "twitter:card", "summary_large_image");
 };
 
 const setArticleSchema = (post) => {
@@ -816,7 +849,7 @@ const renderPage = () => {
       return blogPage();
     case "post": {
       const post = blogIndex[slug] || blogPosts[0];
-      setSeo({ title: post.seoTitle, description: post.seoDescription });
+      setSeo({ title: post.seoTitle, description: post.seoDescription, type: "article" });
       setTimeout(() => setArticleSchema(post), 0);
       return blogPostPage(post);
     }
@@ -832,6 +865,7 @@ const menuBtn = document.querySelector(".menu-btn");
 const nav = document.querySelector("#nav");
 const compactNav = matchMedia("(max-width: 1100px)");
 const desktopMega = matchMedia("(min-width: 1101px)");
+const queryParams = new URLSearchParams(window.location.search);
 
 const closeNav = () => {
   menuBtn.setAttribute("aria-expanded", "false");
@@ -882,6 +916,24 @@ const resetNavigationState = () => {
 
 compactNav.addEventListener("change", resetNavigationState);
 desktopMega.addEventListener("change", resetNavigationState);
+
+const navMode = queryParams.get("menu");
+const megaMode = queryParams.get("mega");
+
+if (navMode === "open" && compactNav.matches) {
+  menuBtn.setAttribute("aria-expanded", "true");
+  menuBtn.setAttribute("aria-label", "Close navigation");
+  nav.classList.add("open");
+  document.body.classList.add("nav-open");
+}
+
+if (megaMode && desktopMega.matches) {
+  const target = megaMode.toLowerCase();
+  document.querySelectorAll(".has-mega").forEach((item) => {
+    const label = item.querySelector("button")?.textContent?.trim().toLowerCase() || "";
+    item.classList.toggle("is-open", label.startsWith(target));
+  });
+}
 
 const formEl = document.querySelector("#contact-form");
 if (formEl) {
